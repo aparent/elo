@@ -1,4 +1,3 @@
-import Control.Monad.State
 import System.Random
 import System.IO
 import Data.Map as M
@@ -22,10 +21,10 @@ updateScore s a b eloBase = M.insert a ra' $ M.insert b rb' eloBase
         kFactor = 30
 
 win :: String -> String -> EloDatabase -> EloDatabase
-win a b  = updateScore 1 a b
+win = updateScore 1
 
 draw :: String -> String -> EloDatabase -> EloDatabase
-draw a b = updateScore 0.5 a b
+draw = updateScore 0.5 
 
 strRanks :: EloDatabase -> String
 strRanks elos = concatMap (\(x,y) -> x ++ " " ++ show y ++ "\n") $ L.reverse sortedElos
@@ -37,16 +36,16 @@ main =  do startScores <- getNames
            elo <- ask startScores
            putStrLn $ strRanks elo
 
-getNames :: IO (EloDatabase)
+getNames :: IO EloDatabase
 getNames = do s <- readFile "names.txt"
               return $ M.fromList $ L.map (\x-> (x,1200)) $ lines s
 
-ask :: EloDatabase -> IO (EloDatabase)
+ask :: EloDatabase -> IO EloDatabase
 ask m = do (a,b) <- rand2Elems m
            putStrLn $ strRanks m
            putStrLn $ "Do you like 1) " ++ a ++ " or 2) " ++ b ++".  You can also type d for draw. x will exit."
            choice <- getChar
-           putStrLn $ "\n"
+           putStrLn "\n"
            case choice of 
              '1' -> ask $ win a b m 
              '2' -> ask $ win b a m
@@ -57,6 +56,6 @@ ask m = do (a,b) <- rand2Elems m
 rand2Elems :: Map k a -> IO (k,k)
 rand2Elems m = do r1 <- randomRIO (0,M.size m - 1)
                   r2 <- randomRIO (0,M.size m - 2)
-                  elem1 <- return $ fst $ M.elemAt r1 m
-                  elem2 <- return $ fst $ M.elemAt r2 $ M.deleteAt r1 m
+                  let elem1 = fst $ M.elemAt r1 m
+                  let elem2 = fst $ M.elemAt r2 $ M.deleteAt r1 m
                   return (elem1,elem2)
